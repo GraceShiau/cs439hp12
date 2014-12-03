@@ -61,6 +61,8 @@ void Network::SendPacket(Packet* packet)
 				p->type = PacketType::ARP;
 				p->isReply = false;
 				Process::networkProcess->QueueNetworkSend(p);
+				Process::networkProcess->QueueNetworkSend(packet);
+				return;
 			}
 
 			switch(packet->protocol)
