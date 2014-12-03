@@ -135,9 +135,13 @@ void Process::kill(long code) {
 }
 
 long Process::execv(const char* fileName, SimpleQueue<const char*> *args, long argc, bool checkPermissions) {
+	if (checkPermissions) {
+		bool access = this->userPermissions->Access(fileName, 2);
+		if (! access) return 0;
+	}
     File *prog = FileSystem::rootfs->rootdir->lookupFile(fileName);
     if (prog == nullptr) {
-    	delete prog; //bad dr gheith.
+    	delete prog; //bad AG.
         return ERR_NOT_FOUND;
     }
 
