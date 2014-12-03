@@ -26,6 +26,7 @@ void* Process::keyboardHandler = nullptr;
 uint32_t Process::idleJiffies = 0;            // idle jiffies
 Process** Process::processList = nullptr;
 Permission* Process::userPermissions = nullptr;
+NetworkProcess* Process::networkProcess = nullptr;
 
 void Process::init() {
     DEBUG = new Debug("Process");

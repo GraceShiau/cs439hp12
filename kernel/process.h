@@ -12,7 +12,7 @@
 
 class Timer;
 class Permission;
-
+class NetworkProcess;
 class Process : public Resource {
 
 public:
@@ -20,17 +20,18 @@ public:
     static size_t STACK_LONGS;
 
     // the ready queue
-    static SimpleQueue<Process*> *readyQueue;
+    static SimpleQueue<Process*>* readyQueue;
 
     // reaper queue -- a process can't delete itself
     // so it puts itself on the reaper queue and the
     // idle process will eventually remove it
-    static SimpleQueue<Process*> *reaperQueue;
+    static SimpleQueue<Process*>* reaperQueue;
     static Process** processList;
     static void checkReaper();
 
     // the idle process
-    static Process *idleProcess;
+    static Process* idleProcess;
+    static NetworkProcess* networkProcess;
     static void* keyboardHandler;
     // idle Jiffies
     static uint32_t idleJiffies;
@@ -42,7 +43,7 @@ public:
     static Atomic32 nextId;
 
     // mutex for tracing
-    static Semaphore *traceMutex;
+    static Semaphore* traceMutex;
 
     SimpleQueue<char> keyQueue;
     // process id
@@ -60,7 +61,7 @@ public:
     State state;
 
     // kernel stack for this process
-    long *stack;
+    long* stack;
 
     // A place for context switching to save the kernel ESP
     long kesp;
@@ -99,7 +100,7 @@ public:
     AddressSpace addressSpace;
 
     // Resources
-    Table *resources;
+    Table* resources;
 
     static Permission* userPermissions;
     // create a process with an optional name

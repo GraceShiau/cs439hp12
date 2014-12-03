@@ -23,6 +23,7 @@ start:
 		mov %ax, %di
 		mov $fontLocation, %eax
 		mov %ax, %es
+
 		push			%ds
 		push			%es
 		#ask BIOS to return VGA bitmap fonts
@@ -169,10 +170,10 @@ userDataSeg:
 tssDS:
 	.long 5 * 8
 
-.global fontLocation
+/*.global fontLocation
 fontLocation:
-	.long 1024
-
+	.byte 4096
+*/
 
 
 #define IDT_COUNT 256

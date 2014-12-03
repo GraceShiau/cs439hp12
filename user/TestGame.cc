@@ -4,28 +4,50 @@ extern "C" {
 }
 
 #include "libcc.h"
+#include "smile.h"
 
 int main()
 {
 	const long screenBufferId = GetScreenBuffer();
-	puts("testing background with buffer id ");
-	putdec(screenBufferId);
-	puts(".\n");
 
-	unsigned char buf[320 * 200];
+	char smileBuffer[512];
+	const long smileId = open("smile.pic");
+	if(smileId < 0)
+	{
+		puts("failed to load smile.\n");
+		return -1;
+	}
 
-
-
+	unsigned char buf[80 * 60];
 	int count = 0;
 	int color = 2;
+	for(int a = 0; a < 80 * 60; ++a)
+	{
+		buf[a] = 2;
+	}
+	const long bytesRead = read(smileId, (void*)smileBuffer, 512);
+	char smile[256];
+
+	smileBuffer[bytesRead] = 0;
+	for(int y = 0; y < 16; ++y)
+	{
+		for(int x = 0; x < 16; ++x)
+		{
+			smile[x * 16 + y] = smileBuffer[y * 17 + x];
+		}
+	}
+
+	Smile mySmile;
+	mySmile.x = 15;
+	mySmile.y = 18;
 	while(1)
 	{
-		++count;
-		for(int a = 0; a < 320 * 200; ++a)
+		for(int a = 0; a < 80 * 60; ++a)
 		{
-			buf[a] = a % 4 == 0 ? a % 256 : color;
+			buf[a] = 2;
 		}
-		Sleep(16);
+
+		++count;
 		const int keyPressCount = GetQueuedKeyPressCount();
 
 		if(keyPressCount > 0)
@@ -34,25 +56,42 @@ int main()
 			GetQueuedKeyPresses(keyBuffer, keyPressCount);
 			for(int a = 0; a < keyPressCount; ++a)
 			{
-				color += 10;
-				color %= 256;
-				char c[3] = {keyBuffer[a], '\n', 0};
-				puts(c);
+				switch(keyBuffer[a])
+				{
+				case 'a':
+					mySmile.x-= 1;
+					break;
+				case 'd':
+					mySmile.x+= 1;
+					break;
+				case 'w':
+					mySmile.y-= 1;
+					break;
+				case 's':
+					mySmile.y+= 1;
+					break;
+				}
 			}
+
 			delete[] keyBuffer;
 		}
-		//puts("attemping to lock buffer for writing: ");
-		//putdec(screenBufferId);
+
+		for(int y = 0; y < 16; ++y)
+		{
+			for(int x = 0; x < 16; ++x)
+			{
+				buf[(x + mySmile.x) * 60 + y + mySmile.y] = smile[x*16 + y] != '0' ? 4 : 0;
+			}
+		}
+
 		LockScreenBuffer(screenBufferId);
-		//puts(" ...done.\n");
 		if(WriteScreenBuffer(screenBufferId, buf) < 0)
 		{
 			puts("Failed to write Test Game screenbuffer.\n");
 		}
 		UnlockScreenBuffer(screenBufferId);
 
-		//puts("finished writing buffer.\n");
-
+		Sleep(16);
 	}
 
 	return 0;

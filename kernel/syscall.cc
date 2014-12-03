@@ -156,7 +156,6 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
 
 		if(ScreenBuffer::globalBuffer == nullptr)
 		{
-			Debug::printf("Creating global screenbuffer.\n");
 			ScreenBuffer* screenBuffer = new ScreenBuffer(320, 200, Process::current->getId());
 			const long resourceId = Process::current->resources->open(screenBuffer);
 			ScreenBuffer::globalBuffer = screenBuffer;
@@ -167,7 +166,6 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
 		{
 			ScreenBuffer* globalSreenBuffer = ScreenBuffer::globalBuffer;
 			globalSreenBuffer->Lock();
-			Debug::printf("Creating a child buffer for process: %d.\n", Process::current->getId());
 			const int width = 80;
 			const int height = 60;
 			unsigned char* newBuffer = new unsigned char[width * height];
@@ -206,21 +204,17 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
 
 		const int requestCount = screenBuffer->GetBufferRequestCount();
 
-		Debug::printf("%d\n", requestCount);
 		if(requestCount < 1)
 		{
 			return 0;
 		}
 
 		int* processIds = (int*)a0;
-		Debug::printf("Sending %d new process requests to window manager for result buffer %x.\n", requestCount, (long)processIds);
 
 		for(int a = 0; a < requestCount; ++a)
 		{
 			processIds[a] = screenBuffer->GetNextChildBuffer();
 		}
-
-		Debug::printf("Finished getting new process windows now.\n");
 	}
 
 	return 0;

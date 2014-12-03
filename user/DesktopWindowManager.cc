@@ -65,9 +65,6 @@ void DesktopWindowManager::acquireNewChildProcesses()
 
 	if(newProcessCount > 0)
 	{
-		puts("found new process for window: ");
-		putdec(newProcessCount);
-		puts("\n");
 		int* newProcessIds = new int[newProcessCount];
 		GetNewWindowRequests(newProcessIds);
 		for(int a = 0; a < newProcessCount; ++a)
@@ -84,7 +81,6 @@ void DesktopWindowManager::acquireNewChildProcesses()
 		}
 
 		delete[] newProcessIds;
-		puts("initialized new process windows.\n");
 	}
 }
 
@@ -163,9 +159,9 @@ void DesktopWindowManager::handleKeyInput()
 					this->foregroundWindow->yPosition+= 1;
 					break;
 				case 'p':
-					puts("Previous foreground window is "); putdec(this->childWindows.GetHead()->value->GetProcessId()); puts("\n");
+					//puts("Previous foreground window is "); putdec(this->childWindows.GetHead()->value->GetProcessId()); puts("\n");
 					this->childWindows.MoveFrontToEnd();
-					puts("New foreground window is "); putdec(this->childWindows.GetHead()->value->GetProcessId()); puts("\n");
+					//puts("New foreground window is "); putdec(this->childWindows.GetHead()->value->GetProcessId()); puts("\n");
 					break;
 				default:
 					QueueChildKeyInput(this->foregroundWindow->GetProcessId(), kp);

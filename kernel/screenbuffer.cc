@@ -20,18 +20,8 @@ int ScreenBuffer::GetNextChildBuffer()
 	ScreenBuffer*  nextBuffer = this->bufferRequests.removeHead();
 
 	const int newId = nextBuffer->ownerProcessId;
-	int widt = nextBuffer->width;
-	Debug::printf("buffer %x process id: %d width: %d.\n", (long)nextBuffer, newId, widt);
-	widt = nextBuffer->width;
-	Debug::printf("new width: %d.\n", widt);
 	this->childBuffers.Push(nextBuffer);
 	return newId;
-}
-
-void ScreenBuffer::AddBufferRequest(ScreenBuffer* request)
-{
-	this->bufferRequests.addTail(request);
-	Debug::printf("just added for p: %d.\n", request->GetOwnerProcessId());
 }
 
  ScreenBuffer* ScreenBuffer::GetChildBuffer(int processId)

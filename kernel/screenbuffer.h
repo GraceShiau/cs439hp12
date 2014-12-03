@@ -22,8 +22,8 @@ class ScreenBuffer : public Resource
 {
 public:
 	static ScreenBuffer* globalBuffer;
-private:
 
+private:
 	Mutex mutex;
 	static constexpr unsigned int vgaMemory = 0xA0000;
 	const int width;
@@ -35,7 +35,7 @@ private:
 
 public:
 	ScreenBuffer(int width, int height, unsigned int ownerProcessId, unsigned int bufferLocation = ScreenBuffer::vgaMemory);
-	void AddBufferRequest(ScreenBuffer* request);
+	inline void AddBufferRequest(ScreenBuffer* request) {this->bufferRequests.addTail(request);}
 	inline void WriteBuffer(const unsigned char* buffer) {memcpy(this->buffer, buffer, this->width * this->height);}
 	inline void WriteBuffer(int x, int y, unsigned char val) {this->buffer[this->width * y + x] = val;}
 
