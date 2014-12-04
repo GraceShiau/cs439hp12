@@ -11,6 +11,7 @@
 #include "network.h"
 #include "kbd.h"
 #include "permission.h"
+#include "NetworkProcess.h"
 
 void Syscall::init(void) {
     IDT::addTrapHandler(100,(uint32_t)syscallTrap,3);
@@ -290,7 +291,11 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
 	return 0;
 	case 24: //ping(unsigned char ip[4])
 	{
-		Network::KernelNetwork->Ping((const unsigned char*)a0);
+        Packet* packet = new Packet(98);
+        packet->type = PacketType::IPv4;
+        packet->protocol = PacketProtocol::ICMP;
+        memcpy(packet->IP, (unsigned char *) a0, 4);
+        Process::networkProcess->QueueNetworkSend(packet);
 	}
 	return 0;
 	case 25: //long GetKeyPresses(char* buf, int bufferLength);

@@ -172,10 +172,10 @@ public:
 	Network();
 	void Init();
 	void HandleNetworkInterrupt();
-	void Ping(const unsigned char ip[4]);
-	void SendPacket(Packet* packet);
+	bool SendPacket(Packet* packet);
 
 private:
+	void ping(Packet *packet, const unsigned char destMac[6]);
 	unsigned short getCurrentPacketLength() const;
 	void endRxOKInterrupt();
 	void endTxOKInterrupt();

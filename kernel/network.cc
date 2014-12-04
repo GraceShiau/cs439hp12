@@ -34,7 +34,7 @@ void Network::HandleNetworkInterrupt()
     }
 }
 
-void Network::SendPacket(Packet* packet)
+bool Network::SendPacket(Packet* packet)
 {
 	switch(packet->type)
 	{
@@ -53,18 +53,6 @@ void Network::SendPacket(Packet* packet)
 		break;
 	case PacketType::IPv4:
 		{
-			unsigned char destMac[6];
-			if(!this->arpCache.GetEntry(packet->IP, destMac))
-			{
-				Packet* p = new Packet(42);
-				memcpy(p->IP, packet->IP, 4);
-				p->type = PacketType::ARP;
-				p->isReply = false;
-				Process::networkProcess->QueueNetworkSend(p);
-				Process::networkProcess->QueueNetworkSend(packet);
-				return;
-			}
-
 			switch(packet->protocol)
 			{
 			case PacketProtocol::ICMP:
@@ -73,38 +61,47 @@ void Network::SendPacket(Packet* packet)
 				{
 					this->sendPacket(packet->data, packet->length);
 				}
+                else 
+                {
+                    unsigned char destMac[6];
+                    if(!this->arpCache.GetEntry(packet->IP, destMac))
+                    {
+                        Packet* p = new Packet(42);
+                        memcpy(p->IP, packet->IP, 4);
+                        p->type = PacketType::ARP;
+                        p->isReply = false;
+                        Process::networkProcess->QueueNetworkSend(p);
+                        return false;
+                    }
+                    else
+                    {
+                        this->ping(packet, destMac);
+                    }
+                }
 			}
 			break;
 			}
 		}
 	}
+
+    return true;
 }
 
-void Network::Ping(const unsigned char ip[4])
+void Network::ping(Packet *packet, const unsigned char destMac[6])
 {
-    unsigned char echoRequest[98];
-
-    unsigned char destMac[6];
-    while (! this->arpCache.GetEntry(ip, destMac))
-    {
-        //this->sendARPRequest(ip);
-
-        Process::sleepFor(500);
-    }
-
-    memcpy(echoRequest, destMac, 6);
-    memcpy(echoRequest + 6, myMac, 6);
-    echoRequest[12] = 0x08;
-    echoRequest[13] = 0x00;
+    memcpy(packet->data, destMac, 6);
+    memcpy(packet->data + 6, myMac, 6);
+    packet->data[12] = 0x08;
+    packet->data[13] = 0x00;
 
     IPv4Header ipv4Header;
     ipv4Header.protocol = 0x01;
     memcpy(ipv4Header.srcIPAddress, myIP, 4);
-    memcpy(ipv4Header.destIPAddress, ip, 4);
+    memcpy(ipv4Header.destIPAddress, packet->IP, 4);
 
     this->calcChecksum((unsigned char *) &ipv4Header, sizeof(IPv4Header), ipv4Header.headerChecksum);
 
-    memcpy(echoRequest + 14, &ipv4Header, sizeof(IPv4Header));
+    memcpy(packet->data + 14, &ipv4Header, sizeof(IPv4Header));
 
     ICMPHeader icmpHeader;
     icmpHeader.type = 0x08;
@@ -115,18 +112,18 @@ void Network::Ping(const unsigned char ip[4])
     icmpHeader.seqNum[0] = 0x00;
     icmpHeader.seqNum[1] = 0x01;
 
-    memcpy(echoRequest + 14 + sizeof(IPv4Header), &icmpHeader, sizeof(ICMPHeader));
+    memcpy(packet->data + 14 + sizeof(IPv4Header), &icmpHeader, sizeof(ICMPHeader));
 
     for (int i = 58; i < 98; ++i)
     {
-        echoRequest[i] = i;
+        packet->data[i] = i;
     }
 
-    this->calcChecksum((unsigned char *) echoRequest + 34, 64, echoRequest + 36 );
+    this->calcChecksum((unsigned char *) packet->data + 34, 64, packet->data + 36 );
 
     Debug::printf("PINGINGINGINGING");
 
-    this->sendPacket(echoRequest, 98);
+    this->sendPacket(packet->data, 98);
 }
 
 Network::Network() :

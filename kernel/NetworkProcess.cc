@@ -13,12 +13,27 @@ long NetworkProcess::run()
 	while(1)
 	{
 		Process::disable();
+		SimpleQueue<Packet*> tryAgainQueue;
 		while(!this->networkSending.isEmpty())
 		{
 			Packet* nextPacket = this->networkSending.removeHead();
-			Network::KernelNetwork->SendPacket(nextPacket);
-			delete nextPacket;
+			if(!Network::KernelNetwork->SendPacket(nextPacket))
+			{
+				tryAgainQueue.addTail(nextPacket);
+			}
+			else
+			{
+				delete nextPacket;
+			}
 		}
+
+		Process::sleepFor(500);
+
+		while(!tryAgainQueue.isEmpty())
+		{
+			this->networkSending.addTail(tryAgainQueue.removeHead());
+		}
+
 		Process::enable();
 		yield();
 	}
