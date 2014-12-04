@@ -79,8 +79,13 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
         {
             File* f = FileSystem::rootfs->rootdir->lookupFile((char*) a0);
             if (f == nullptr) return ERR_NOT_FOUND;
+            bool access = true; //Process::current->userPermissions->Access((const char*)a0, 0);
+            if (!access) return ERR_ACCESS_DENIED;
             else return Process::current->resources->open(f);
         }
+        // adding syscall for login for validating username and hash
+        // take in a username char* and another char* of hashed password.
+        // syscall will just be reading the passwords file
     case 9 : /* getlen */
         {
              File* f = (File*) Process::current->resources->get(a0,ResourceType::FILE);
@@ -129,7 +134,6 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
                  args.addTail(s);
                  i++;
              }
-
              long rc = Process::current->execv(name,&args,i, true);
 
              /* execv failed, cleanup */
