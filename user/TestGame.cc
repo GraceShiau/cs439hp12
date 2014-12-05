@@ -40,6 +40,20 @@ int main()
 	Smile mySmile;
 	mySmile.x = 15;
 	mySmile.y = 18;
+
+	const int socketDescriptor = OpenSocket(1, 16);
+	if(socketDescriptor < 0)
+	{
+		puts("Failed to open socket.\n");
+	}
+
+	puts("Successfully opened socket descriptor on port 16.\n");
+	unsigned char destIP[4] = {192, 168, 7, 4};
+	const char* data = "abcdefghijklmnopqrstuvwxyz";
+
+	WriteSocket(socketDescriptor, destIP, (unsigned char*)data, strlen(data));
+
+	delete data;
 	while(1)
 	{
 		for(int a = 0; a < 80 * 60; ++a)

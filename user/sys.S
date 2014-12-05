@@ -271,3 +271,27 @@ CheckLoginCred:
 	mov 8(%esp), %edx
 	int $100
 	ret
+
+.global OpenSocket //OpenSocket(int protocol, int port)
+OpenSocket:
+	mov $30, %eax
+	mov 4(%esp), %ecx
+	mov 8(%esp), %edx
+	int $100
+	ret
+
+.global ReadSocket //ReadSocket(long socketDescriptor, unsigned char srcIP[4], unsigned char* buffer, long bufferLength)
+ReadSocket:
+	mov $31, %eax
+	lea 4(%esp), %ecx
+	mov $0, %edx
+	int $100
+	ret
+
+.global WriteSocket //WriteSocket(long socketDescriptor, unsigned char* buffer, long bufferSize);
+WriteSocket:
+	mov $32, %eax
+	lea 4(%esp), %ecx
+	mov $0, %edx
+	int $100
+	ret

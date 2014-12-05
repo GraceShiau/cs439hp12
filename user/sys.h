@@ -31,4 +31,7 @@ extern long QueueChildKeyInput(long childId, char key);
 extern long GetQueuedKeyPressCount();
 extern long GetQueuedKeyPresses(char* buf, int len);
 extern long CheckLoginCred(const char* userName, const char* hash);
+extern long OpenSocket(int protocol, int port);
+extern long ReadSocket(long socketDescriptor, unsigned char srcIP[4], unsigned char* buffer,  long bufferSize);
+extern long WriteSocket(long socketDescriptor, const unsigned char destinationIP[4], const unsigned char* const buffer, long bufferSize);
 #endif

@@ -261,6 +261,17 @@ public:
     inline bool isEmpty() {
         return first == 0;
     }
+
+    inline T peekHead()
+    {
+    	if(first != nullptr)
+    	{
+    		return first->value;
+    	}
+
+    	return nullptr;
+    }
+
     inline T removeHead() {
         Node *p = first;
         first = p->next;

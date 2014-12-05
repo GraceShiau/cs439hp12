@@ -21,15 +21,18 @@ struct Packet
 {
 	PacketType type;
 	PacketProtocol protocol;
-	unsigned long length;
+	const unsigned long length;
 	unsigned char* data;
 	bool isReply;
 	unsigned char IP[4];
-
+	unsigned long sendTime;
+	unsigned int port;
 	Packet(unsigned long length) :
 		length(length),
 		data(new unsigned char[length]),
-		isReply(false)
+		isReply(false),
+		sendTime(0),
+		port(0)
 	{
 
 	}
@@ -159,8 +162,8 @@ public:
 	static constexpr unsigned int networkBufferSize = 16000;
 	static Network* KernelNetwork;
 	static constexpr unsigned int ioaddr = 0xc000;
-	static const unsigned char myMac[6];
-	static const unsigned char myIP[4];
+	static unsigned char myMac[6];
+	static unsigned char myIP[4];
 	ARPCache arpCache;
 	long netCount;
 	long currentBufferPosition;

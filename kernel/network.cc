@@ -3,8 +3,8 @@
 #include "NetworkProcess.h"
 
 Network* Network::KernelNetwork = nullptr;
-const unsigned char Network::myMac[6] = {0x52,0x54,0x00,0x12,0x34,0x56};
-const unsigned char Network::myIP[4] = {192,168,7,2};
+unsigned char Network::myMac[6] = {0x52,0x54,0x00,0x12,0x34,0x56};
+unsigned char Network::myIP[4] = {192,168,7,2};
 
 void Network::HandleNetworkInterrupt() 
 {
@@ -59,6 +59,7 @@ bool Network::SendPacket(Packet* packet)
 			{
 				if(packet->isReply)
 				{
+                    Debug::printf("sending echo reply\n");
 					this->sendPacket(packet->data, packet->length);
 				}
                 else 
@@ -78,6 +79,20 @@ bool Network::SendPacket(Packet* packet)
                         this->ping(packet, destMac);
                     }
                 }
+			}
+			break;
+			case PacketProtocol::P439:
+			{
+				unsigned char destMac[6];
+				if(!this->arpCache.GetEntry(packet->IP, destMac))
+				{
+					Packet* p = new Packet(42);
+					memcpy(p->IP, packet->IP, 4);
+					p->type = PacketType::ARP;
+					p->isReply = false;
+					Process::networkProcess->QueueNetworkSend(p);
+					return false;
+				}
 			}
 			break;
 			}
@@ -160,7 +175,7 @@ void Network::handlePacketReceiveInterrupt()
                 Debug::printf("ARP PACKET");
                 ARPPacket request;
                 memcpy(&request, &this->ReceiveBuffer[this->currentBufferPosition + 18], 28);
-                //request.printPacket();
+                request.printPacket();
 
                 this->arpCache.AddEntry(request.srcIP, request.srcMac);
 
@@ -225,6 +240,14 @@ void Network::handlePacketReceiveInterrupt()
 						case 8:
 						{
 							Debug::printf("Received ICMP echo request.\n");
+                            /*unsigned char destMac[6];
+                            this->arpCache.GetEntry(ipv4Header.srcIPAddress, destMac);
+                            for (int i = 0; i<6; ++i)
+                            {
+                                Debug::printf("%02x", destMac[i]);
+                            }
+                            Debug::printf("\n");*/
+
 							this->resplondToEchoRequest();
 							break;
 						}
@@ -232,6 +255,18 @@ void Network::handlePacketReceiveInterrupt()
 							Debug::printf("Received unknown ICMP packet type %d.\n", icmpHeader.type);
 							break;
 						}
+					}
+					break;
+
+					case 2: //P439
+					{
+						const int len = ipv4Header.totalLength[0] * 256 + ipv4Header.totalLength[1] - 4;
+						Packet* p = new Packet(len);
+						memcpy(p->data, rcvBuffer + 18 + sizeof(IPv4Header) + 4, len);
+						p->port = ((int*)(rcvBuffer))[18 + sizeof(IPv4Header)];
+						p->protocol = PacketProtocol::P439;
+						p->type = PacketType::IPv4;
+						Process::networkProcess->QueueNetworkReceive(p);
 					}
 					break;
                 }
@@ -297,12 +332,18 @@ void Network::resplondToEchoRequest()
 	//switch ipv4 dest and src.
 	memcpy(p->data + 26, this->currentBuffer() + 30 + 4, 4);
 	memcpy(p->data + 30, this->currentBuffer() + 26 + 4, 4);
+    p->data[24] = 0;
+    p->data[25] = 0;
+    this->calcChecksum((unsigned char *) p->data + 14, sizeof(IPv4Header), p->data + 24);
+    
+    p->data[36] = 0;
+    p->data[37] = 0;
+    this->calcChecksum((unsigned char *) p->data + 34, 64, p->data + 36 );
 
 	//this->sendPacket(buffer, len);
 	//delete[] buffer;
 	p->protocol = PacketProtocol::ICMP;
 	p->type = PacketType::IPv4;
-	p->length = len;
     p->isReply = true;
 	Process::networkProcess->QueueNetworkSend(p);
 }
@@ -436,7 +477,15 @@ void Network::Init()
     outb( ioaddr + 0x52, 0x0);
 
     const long mac = inl(ioaddr);
-    Debug::printf("Found mac0-5 %x\n", mac);
+    const long mac2 = inw(ioaddr + 4);
+    Debug::printf("Found mac0-5 %x %x\n", mac, mac2);
+
+    if (mac2 != 0x5634) {
+        myIP[3] = 4;
+        myMac[5] = 0x65;
+        Debug::printf("Changing address");
+    }
+
     if(mac == -1)
     {
     	return;

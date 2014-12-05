@@ -11,7 +11,8 @@ enum ResourceType {
     TABLE,
     OTHER,
     SCREEN_BUFFER,
-    BUFFER_REQUEST
+    BUFFER_REQUEST,
+	SOCKET
 };
 
 class Resource {

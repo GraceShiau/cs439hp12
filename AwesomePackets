@@ -279,6 +279,37 @@ http://stackoverflow.com/questions/13430091/ipv4-header-checksum-computation-err
 
 
 
+00:17:25.883818 52:54:00:12:34:56 (oui Unknown) > 2a:1a:99:e0:1d:ee (oui Unknown), ethertype IPv4 (0x0800), length 98: 192.168.7.2 > yuqian-IdeaPad-U430p.local: ICMP echo reply, id 4109, seq 1, length 64
+	0x0000:  2a1a 99e0 1dee 5254 0012 3456 0800 4500
+	0x0010:  0054 fe8d 4000 3f01 0000 c0a8 0702 c0a8
+	0x0020:  0701 0000 0800 100d 0001 0000 0000 0000
+	0x0030:  0000 3a3b 3c3d 3e3f 4041 3a3b 3c3d 3e3f
+	0x0040:  4041 4243 4445 4647 4849 4a4b 4c4d 4e4f
+	0x0050:  5051 5253 5455 5657 5859 5a5b 5c5d 5e5f
+	0x0060:  6061
+
+00:17:12.482308 2a:1a:99:e0:1d:ee (oui Unknown) > 52:54:00:12:34:56 (oui Unknown), ethertype IPv4 (0x0800), length 98: yuqian-IdeaPad-U430p.local > 192.168.7.2: ICMP echo request, id 4109, seq 1, length 64
+	0x0000:  5254 0012 3456 2a1a 99e0 1dee 0800 4500
+	0x0010:  0054 fe8d 4000 3f01 adc7 c0a8 0701 c0a8
+	0x0020:  0702 0800 e8da 100d 0001 0000 0000 0000
+	0x0030:  0000 3a3b 3c3d 3e3f 4041 3a3b 3c3d 3e3f
+	0x0040:  4041 4243 4445 4647 4849 4a4b 4c4d 4e4f
+	0x0050:  5051 5253 5455 5657 5859 5a5b 5c5d 5e5f
+	0x0060:  6061
+
+
+00:25:32.593155 52:54:00:12:34:56 (oui Unknown) > 2a:1a:99:e0:1d:ee (oui Unknown), ethertype IPv4 (0x0800), length 98: 192.168.7.2 > yuqian-IdeaPad-U430p.local: ICMP echo reply, id 4109, seq 1, length 64
+	0x0000:  2a1a 99e0 1dee 5254 0012 3456 0800 4500
+	0x0010:  0054 fe8d 4000 3f01 adc7 c0a8 0702 c0a8
+	0x0020:  0701 0000 0800 100d 0001 3e3f 4041 4243
+	0x0030:  4445 4647 4849 4a4b 4c4d 3a3b 3c3d 3e3f
+	0x0040:  4041 4243 4445 4647 4849 4a4b 4c4d 4e4f
+	0x0050:  5051 5253 5455 5657 5859 5a5b 5c5d 5e5f
+	0x0060:  6061
+
+
+
+
 
 
 

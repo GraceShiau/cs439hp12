@@ -12,6 +12,7 @@
 #include "kbd.h"
 #include "permission.h"
 #include "NetworkProcess.h"
+#include "socket.h"
 
 void Syscall::init(void) {
     IDT::addTrapHandler(100,(uint32_t)syscallTrap,3);
@@ -381,7 +382,64 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
 		delete f;
 		return -1;
 	}
-    default:
+	case 30: //OpenSocket(int protocol, int port)
+	{
+		Socket* socket = new Socket(static_cast<PacketProtocol>(a0), a1, Process::current);
+		const long resourceId = Process::current->resources->open(socket);
+
+		return resourceId;
+	}
+	case 31: //ReadSocket(long socketDescriptor, unsigned char srcIP[4], unsigned char* buffer,  long bufferSize);
+	{
+		Debug::printf("Attempting to read buffersize: %d\n", reinterpret_cast<int*>(a0)[3]);
+		const int socketDescriptor = reinterpret_cast<int*>(a0)[0];
+		Socket* socket = static_cast<Socket*>(Process::current->resources->get(socketDescriptor, SOCKET));
+		if(socket == nullptr)
+		{
+			return -1;
+		}
+
+		Packet* readPacket = Process::current->getNextQueuedPacket();
+		if(readPacket == nullptr || readPacket->port != socket->GetPort() || readPacket->protocol != socket->GetProtocol())
+		{
+			return 0;
+		}
+
+		const int bufferSize = reinterpret_cast<int*>(a0)[3];
+		if(readPacket->length > bufferSize)
+		{
+			return -2;
+		}
+
+		unsigned char* srcIP = reinterpret_cast<unsigned char*>(reinterpret_cast<int*>(a0)[1]);
+		memcpy(srcIP, readPacket->IP, 4);
+
+		unsigned char* buffer = reinterpret_cast<unsigned char*>(reinterpret_cast<int*>(a0)[2]);
+
+		const int packetLength = readPacket->length;
+		memcpy(buffer, readPacket->data, packetLength);
+		delete readPacket;
+
+		return packetLength;
+	}
+	return 0;
+	case 32: //WriteSocket(long socketDescriptor, const unsigned char destinationIP[4], const unsigned char* const buffer, long bufferSize);
+	{
+		Debug::printf("Attempting to read buffersize: %d\n", reinterpret_cast<int*>(a0)[3]);
+		const int socketDescriptor = reinterpret_cast<int*>(a0)[0];
+		Socket* socket = static_cast<Socket*>(Process::current->resources->get(socketDescriptor, SOCKET));
+		if(socket == nullptr)
+		{
+			return -1;
+		}
+
+		const unsigned char* destIP = reinterpret_cast<unsigned char*>(reinterpret_cast<int*>(a0)[1]);
+		const unsigned char* const buffer = reinterpret_cast<unsigned char*>(reinterpret_cast<int*>(a0)[2]);
+		const int bufferSize = reinterpret_cast<int*>(a0)[3];
+		Process::networkProcess->WriteToSocket(socket, destIP, buffer, bufferSize);
+	}
+	return 0;
+	default:
         Process::trace("syscall(%d,%d,%d)",num,a0,a1);
         return -1;
     }
