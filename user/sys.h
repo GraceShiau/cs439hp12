@@ -30,5 +30,5 @@ extern long GetKeyPresses(char* buf, int bufferLength);
 extern long QueueChildKeyInput(long childId, char key);
 extern long GetQueuedKeyPressCount();
 extern long GetQueuedKeyPresses(char* buf, int len);
-extern long SetUserPermissions(long uid);
+extern long CheckLoginCred(const char* userName, const char* hash);
 #endif

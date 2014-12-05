@@ -17,6 +17,32 @@ void Syscall::init(void) {
     IDT::addTrapHandler(100,(uint32_t)syscallTrap,3);
 }
 
+// Helper methods for login authentication
+bool foundUser(const char* buf, const char* username) {
+	for (long i = 0; i < 10; i++) {
+		char x = buf[i];
+        if (x != username[i]) {
+        	Debug::printf("did not find user\n");
+        	return false;
+        }
+        if (x == 0) {
+        	Debug::printf("found user!\n");
+        	return true;
+		}
+	}
+	Debug::printf("found user!\n");
+        	
+	return true;
+}
+
+bool passwordMatches(const char* buf, const char* password) {
+	for (long i = 10; i < 42; i++) {
+		char x = buf[i];
+		if (x != password[i - 10]) return false;
+    }
+    Debug::printf("password matches!\n");
+	return true;
+}
 
 extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
 
@@ -333,11 +359,28 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
 
 		return foundCount;
 	}
-	case 29: //SetUserPermissions(long uid)
+	case 29: //CheckLoginCred(char* userName, char* hash)
 	{
-		Process::userPermissions = new Permission(a0);
+    	File* f = FileSystem::rootfs->rootdir->lookupFile("passwords");
+    	char buf[42];
+    	uint32_t len = f->getLength();
+		for (long i = 0; i < len; i+=42) {
+			f->readFully(buf, 42);
+	    	Debug::printf("buffer: %s@@@@@\n", buf);
+
+			if (foundUser(buf, (const char*) a0)) {
+				if (passwordMatches(buf, (const char*) a1)) {
+					long userID = i / 42;
+					Process::userPermissions = new Permission(userID);	 // set user permission
+					Debug::printf("~~~\n");
+					delete f;
+					return userID;
+				}
+			}
+		}
+		delete f;
+		return -1;
 	}
-	return 0;
     default:
         Process::trace("syscall(%d,%d,%d)",num,a0,a1);
         return -1;

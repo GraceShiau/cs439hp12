@@ -264,11 +264,10 @@ GetQueuedKeyPresses:
 	int $100
 	ret
 
-.global SetUserPermissions //SetUserPermissions(long uid);
-SetUserPermissions:
+.global CheckLoginCred //CheckLoginCred(char* userName, char* hash);
+CheckLoginCred:
 	mov $29, %eax
 	mov 4(%esp), %ecx
-	mov $0, %edx
+	mov 8(%esp), %edx
 	int $100
 	ret
-

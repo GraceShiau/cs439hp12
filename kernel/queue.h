@@ -71,8 +71,7 @@ public:
 template<typename KEY_TYPE, typename VALUE_TYPE> class Map
 {
 public:
-	class MapNode
-	{
+	class MapNode {
 	public:
 		KEY_TYPE key;
 		VALUE_TYPE value;
