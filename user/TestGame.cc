@@ -51,11 +51,25 @@ int main()
 	unsigned char destIP[4] = {192, 168, 7, 4};
 	const char* data = "abcdefghijklmnopqrstuvwxyz";
 
-	WriteSocket(socketDescriptor, destIP, (unsigned char*)data, strlen(data));
+	WriteSocket(socketDescriptor, destIP, (unsigned char*)data, strlen(data) + 1);
 
 	delete data;
 	while(1)
 	{
+
+		unsigned char buffer[512];
+		unsigned char ip[4];
+		const int bytesFromNetwork = ReadSocket(socketDescriptor, ip, buffer, 512);
+
+		if (bytesFromNetwork > 0)
+		{
+			putdec(bytesFromNetwork);
+			puts("\n");
+			puts((const char*)buffer);
+			puts("\n");
+		}
+
+
 		for(int a = 0; a < 80 * 60; ++a)
 		{
 			buf[a] = 2;

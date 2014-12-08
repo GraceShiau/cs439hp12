@@ -26,7 +26,7 @@ struct Packet
 	bool isReply;
 	unsigned char IP[4];
 	unsigned long sendTime;
-	unsigned int port;
+	unsigned char port;
 	Packet(unsigned long length) :
 		length(length),
 		data(new unsigned char[length]),
@@ -179,6 +179,7 @@ public:
 
 private:
 	void ping(Packet *packet, const unsigned char destMac[6]);
+	void sendP439Packet(Packet *packet, const unsigned char destMac[6]);
 	unsigned short getCurrentPacketLength() const;
 	void endRxOKInterrupt();
 	void endTxOKInterrupt();
@@ -199,6 +200,7 @@ public:
 	static void pciConfigWriteWord(unsigned char bus, unsigned char slot, unsigned
 		char func, unsigned char offset, unsigned short val);
 	static unsigned short pciCheckVendor(unsigned char bus, unsigned char slot);
+	static bool CheckIP(const unsigned char ip[4]);
 };
 
 #endif

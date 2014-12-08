@@ -30,3 +30,7 @@ To skip ARP request (to see actual data packet immediately -- eventually our ker
 
 arp -a (to see mac address cache)
 sudo arp -s <address> <max>
+
+
+qemu-system-x86_64 -net nic,model=rtl8139,macaddr=52:54:00:12:34:65 -net tap,ifname=tap1 --serial mon:stdio -hdc kernel/kernel.img -hdd fat439/user.img
+

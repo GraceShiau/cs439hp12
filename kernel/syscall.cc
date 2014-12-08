@@ -386,12 +386,13 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
 	{
 		Socket* socket = new Socket(static_cast<PacketProtocol>(a0), a1, Process::current);
 		const long resourceId = Process::current->resources->open(socket);
+		NetworkProcess::portTable[a1] = socket;
 
 		return resourceId;
 	}
 	case 31: //ReadSocket(long socketDescriptor, unsigned char srcIP[4], unsigned char* buffer,  long bufferSize);
 	{
-		Debug::printf("Attempting to read buffersize: %d\n", reinterpret_cast<int*>(a0)[3]);
+		//Debug::printf("Attempting to read buffersize: %d\n", reinterpret_cast<int*>(a0)[3]);
 		const int socketDescriptor = reinterpret_cast<int*>(a0)[0];
 		Socket* socket = static_cast<Socket*>(Process::current->resources->get(socketDescriptor, SOCKET));
 		if(socket == nullptr)
@@ -404,6 +405,8 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
 		{
 			return 0;
 		}
+
+		Debug::printf("Read one packet\n");
 
 		const int bufferSize = reinterpret_cast<int*>(a0)[3];
 		if(readPacket->length > bufferSize)
@@ -434,6 +437,11 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
 		}
 
 		const unsigned char* destIP = reinterpret_cast<unsigned char*>(reinterpret_cast<int*>(a0)[1]);
+		if (Network::CheckIP(destIP))
+		{
+			return -2;
+		}
+		//Debug::printf("Going to send a packet\n");
 		const unsigned char* const buffer = reinterpret_cast<unsigned char*>(reinterpret_cast<int*>(a0)[2]);
 		const int bufferSize = reinterpret_cast<int*>(a0)[3];
 		Process::networkProcess->WriteToSocket(socket, destIP, buffer, bufferSize);

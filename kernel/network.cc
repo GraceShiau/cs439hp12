@@ -11,7 +11,7 @@ void Network::HandleNetworkInterrupt()
     ++this->netCount;
 
 	unsigned short interruptType = inw(ioaddr + 0x3E);
-	Debug::printf("Received interrupt of type: %x from the network card.\n", interruptType);
+	//Debug::printf("Received interrupt of type: %x from the network card.\n", interruptType);
 
     
     if((interruptType & 1) > 0)
@@ -93,6 +93,10 @@ bool Network::SendPacket(Packet* packet)
 					Process::networkProcess->QueueNetworkSend(p);
 					return false;
 				}
+                else
+                {
+                    this->sendP439Packet(packet, destMac);
+                }
 			}
 			break;
 			}
@@ -139,6 +143,33 @@ void Network::ping(Packet *packet, const unsigned char destMac[6])
     Debug::printf("PINGINGINGINGING");
 
     this->sendPacket(packet->data, 98);
+}
+
+void Network::sendP439Packet(Packet *packet, const unsigned char destMac[6])
+{
+    unsigned char* buffer = new unsigned char[packet->length + 35];
+    memcpy(buffer, destMac, 6);
+    memcpy(buffer + 6, myMac, 6);
+    buffer[12] = 0x08;
+    buffer[13] = 0x00;
+
+    IPv4Header ipv4Header;
+    ipv4Header.protocol = 0x02;
+    ipv4Header.totalLength[1] = packet->length + 21;
+    memcpy(ipv4Header.srcIPAddress, myIP, 4);
+    memcpy(ipv4Header.destIPAddress, packet->IP, 4);
+
+    this->calcChecksum((unsigned char *) &ipv4Header, sizeof(IPv4Header), ipv4Header.headerChecksum);
+
+    memcpy(buffer + 14, &ipv4Header, sizeof(IPv4Header));
+
+    memcpy(buffer + 34, &packet->port, 1);
+
+    memcpy(buffer + 35, packet->data, packet->length);
+
+    this->sendPacket(buffer, packet->length + 35);
+
+    delete[] buffer;
 }
 
 Network::Network() :
@@ -260,12 +291,14 @@ void Network::handlePacketReceiveInterrupt()
 
 					case 2: //P439
 					{
-						const int len = ipv4Header.totalLength[0] * 256 + ipv4Header.totalLength[1] - 4;
+						const int len = ipv4Header.totalLength[0] * 256 + ipv4Header.totalLength[1] - 21;
 						Packet* p = new Packet(len);
-						memcpy(p->data, rcvBuffer + 18 + sizeof(IPv4Header) + 4, len);
-						p->port = ((int*)(rcvBuffer))[18 + sizeof(IPv4Header)];
+						memcpy(p->data, rcvBuffer + 18 + sizeof(IPv4Header) + 1, len);
+						p->port = rcvBuffer[38];
 						p->protocol = PacketProtocol::P439;
 						p->type = PacketType::IPv4;
+                        //Debug::printf("Received a P439 Packet!!! %s\n\n", p->data);
+
 						Process::networkProcess->QueueNetworkReceive(p);
 					}
 					break;
@@ -538,6 +571,18 @@ void Network::InitNetwork()
 	Network::KernelNetwork->Init();
 	Process::networkProcess = new NetworkProcess();
     Process::networkProcess->start();
+}
+
+bool Network::CheckIP(const unsigned char ip[4])
+{
+    for (int i = 0; i < 4; ++i)
+    {
+        if (ip[i] != myIP[i])
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 unsigned int Network::pciConfigReadWord(unsigned char bus, unsigned char slot, unsigned

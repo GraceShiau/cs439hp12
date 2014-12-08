@@ -45,6 +45,7 @@ long NetworkProcess::run()
 			Packet* nextPacket = this->networkReceiving.removeHead();
 			Process::enable();
 
+			Debug::printf("port number is %d\n", nextPacket->port);
 			NetworkProcess::portTable[nextPacket->port]->GetOwner()->queueReceivePacket(nextPacket);
 		}
 
@@ -56,7 +57,11 @@ void NetworkProcess::WriteToSocket(Socket* s, const unsigned char destinationIP[
 {
 	Packet* p = new Packet(bufferLength);
 	p->port = s->GetPort();
-	//p->
+	p->protocol = s->GetProtocol();
+	p->type = PacketType::IPv4;
+	memcpy(p->IP, destinationIP, 4);
+	memcpy(p->data, buffer, bufferLength);
+	this->QueueNetworkSend(p);
 }
 
 void NetworkProcess::QueueNetworkSend(Packet* packet)

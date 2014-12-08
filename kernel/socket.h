@@ -12,7 +12,7 @@ class Socket : public Resource
 	Process* owner;
 
 public:
-	Socket(PacketProtocol protocol, int port, Process* owner);
+	Socket(PacketProtocol protocol, char port, Process* owner);
 
 	inline PacketProtocol GetProtocol() const {return this->protocol;}
 	inline int GetPort() const {return this->port;}
