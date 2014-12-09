@@ -23,16 +23,12 @@ bool foundUser(const char* buf, const char* username) {
 	for (long i = 0; i < 10; i++) {
 		char x = buf[i];
         if (x != username[i]) {
-        	Debug::printf("did not find user\n");
         	return false;
         }
         if (x == 0) {
-        	Debug::printf("found user!\n");
         	return true;
 		}
 	}
-	Debug::printf("found user!\n");
-        	
 	return true;
 }
 
@@ -41,7 +37,6 @@ bool passwordMatches(const char* buf, const char* password) {
 		char x = buf[i];
 		if (x != password[i - 10]) return false;
     }
-    Debug::printf("password matches!\n");
 	return true;
 }
 
@@ -111,9 +106,6 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
             if (!access) return ERR_ACCESS_DENIED;
             else return Process::current->resources->open(f);
         }
-        // adding syscall for login for validating username and hash
-        // take in a username char* and another char* of hashed password.
-        // syscall will just be reading the passwords file
     case 9 : /* getlen */
         {
              File* f = (File*) Process::current->resources->get(a0,ResourceType::FILE);
@@ -151,7 +143,6 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
              /* find the security exposures in this code */
              char* name = (char*) a0;
              char** userArgs = (char**) a1;
-//
              SimpleQueue<const char*> args;
 
              int i = 0;
@@ -162,13 +153,15 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
                  args.addTail(s);
                  i++;
              }
-             long rc = Process::current->execv(name,&args,i, true);
+             long rc = Process::current->execv(name,&args,i,true);
+             Debug::printf("came back from execv! Now in syscall.\n");
 
              /* execv failed, cleanup */
              while (!args.isEmpty()) {
                  const char* s = args.removeHead();
                  delete[] s;
              }
+             Debug::printf("before retunrning from syscall, rc: %d\n", rc);
              return rc;
         }
     case 14: /* getchar */
@@ -367,8 +360,6 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
     	uint32_t len = f->getLength();
 		for (long i = 0; i < len; i+=42) {
 			f->readFully(buf, 42);
-	    	Debug::printf("buffer: %s@@@@@\n", buf);
-
 			if (foundUser(buf, (const char*) a0)) {
 				if (passwordMatches(buf, (const char*) a1)) {
 					long userID = i / 42;

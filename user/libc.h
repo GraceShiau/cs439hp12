@@ -4,6 +4,7 @@
 #include "sys.h"
 
 extern void puts(const char *p);
+extern void putc(char c);
 extern char* gets();
 extern void* malloc(long size);
 extern void free(void*);

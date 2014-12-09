@@ -3,10 +3,15 @@
 int main() {
 
 	const long fileHandle = open(".");
-	if(fileHandle < 0)
-	{
-		puts("didn't work\n");
+	if (fileHandle == -1006) {
+		puts("ls: .: access denied\n");
+		return 0;	
 	}
+	else if(fileHandle < 0)	{
+		puts("ls failed\n");
+		return 0;
+	}
+
 
 	const long fileLength = getlen(fileHandle);
 	for(int a = 0; a < fileLength; a += 16)

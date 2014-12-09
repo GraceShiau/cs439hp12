@@ -136,10 +136,12 @@ void Process::kill(long code) {
 }
 
 long Process::execv(const char* fileName, SimpleQueue<const char*> *args, long argc, bool checkPermissions) {
-	if (checkPermissions) {
-		bool access = this->userPermissions->Access(fileName, 2);
-		if (! access) return 0;
-	}
+    // backup fileName for checking permission later
+    long namelen = K::strlen(fileName);
+    char* fileNameBackup = new char[namelen + 1];
+    fileNameBackup[namelen] = 0;
+    memcpy(fileNameBackup, fileName, namelen);
+
     File *prog = FileSystem::rootfs->rootdir->lookupFile(fileName);
     if (prog == nullptr) {
     	delete prog; //bad AG.
@@ -206,6 +208,15 @@ long Process::execv(const char* fileName, SimpleQueue<const char*> *args, long a
         }
     }
 
+    // check execution permission
+    //checkPermissions = false;
+    if (checkPermissions) {
+        bool access = this->userPermissions->Access(fileNameBackup, 2);
+        if (! access) {
+            Debug::printf("In process' execv, %s access denied, returning to syscall.\n", fileNameBackup);
+            return ERR_ACCESS_DENIED;
+        }
+    }
     switchToUser(hdr.e_entry, userESP,0);
 
     Debug::shutdown("What?");

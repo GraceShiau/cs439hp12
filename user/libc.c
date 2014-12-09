@@ -9,6 +9,12 @@ void puts(const char* p) {
     while ((c = *p++) != 0) putchar(c); 
 }
 
+void putc(char c)
+{
+	char tmp[2] = {c, 0};
+	puts(tmp);
+}
+
 char* gets() {
     long sz = 0;
     char *p = 0;

@@ -2,6 +2,7 @@
 #define _QUEUE_H_
 #include "libk.h"
 #include "machine.h"
+#include "debug.h"
 
 class String
 {
@@ -29,7 +30,7 @@ public:
 			}
 		}
 
-		return this->length <= rhs.length;
+		return this->length < rhs.length;
 	}
 
 	bool operator>(const String& rhs) const
@@ -46,7 +47,7 @@ public:
 			}
 		}
 
-		return this->length >= rhs.length;
+		return this->length > rhs.length;
 	}
 
 	bool operator==(const String& rhs) const
@@ -116,6 +117,8 @@ public:
 		foundNode = new MapNode(key);
 		if(this->root == nullptr)
 		{
+			Debug::printf("weird case\n");
+			
 			this->root = foundNode;
 		}
 		else

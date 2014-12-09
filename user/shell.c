@@ -6,12 +6,13 @@ void notFound(char* cmd) {
 }
 
 int main() {
-    int firstRun = 1;
+    //int firstRun = 1;
     while (1) {
 
         puts("shell> ");
-        char* in = firstRun ? "&TestProgram" : gets();
-        firstRun = 0;
+        char* in = gets();
+        //char* in = firstRun ? "cat panic" : gets();
+        //firstRun = 0;
         int ind = 0;
         int argc = 0;
         char** args;
@@ -89,8 +90,11 @@ int main() {
         else
         {
         	const long err = execv(args[0], args);
-        	if(err < 0)
-        	{
+            if (err == -1006) {
+                puts(args[0]);
+                puts(": access denied\n");
+            }
+        	else if(err < 0) {
                 puts(args[0]);
                 puts(": command not found\n");
         	}

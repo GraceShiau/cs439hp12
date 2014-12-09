@@ -11,18 +11,17 @@ struct FilePermission
 };
 
 class Permission {
-	//List<FilePermissions>
 	char* buffer;
 	unsigned int len;
 	long userId;
-	Map<String, FilePermission> filePermissions;
-	// assume permissions file fits in one block for now
+	Map<String, FilePermission*> filePermissions;
+	// assume permissions file fits in one block
 	void loadBuffer();
 	void processBuffer();
 public:
 	Permission(long userID);
 	// 0 for denied, 1 for granted
-	unsigned int Access(char* fileName, unsigned int mode) const;
+	bool Access(const char* fileName, unsigned int mode);
 };
 
 #endif

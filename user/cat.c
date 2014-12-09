@@ -10,8 +10,13 @@ int main(int argc, char** argv) {
 	for(int a = 1; a < argc; ++a)
 	{
 		const long fileHandle = open(argv[a]);
-		if(fileHandle < 0)
-		{
+		if (fileHandle == -1006) {
+			puts("cat: ");
+			puts(argv[a]);
+			puts(": access denied\n");
+			return 0;	
+		}
+		else if(fileHandle < 0) {
 			puts("cat: ");
 			puts(argv[a]);
 			puts(": No such file or directory\n");
