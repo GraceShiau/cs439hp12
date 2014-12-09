@@ -373,7 +373,6 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
 				if (passwordMatches(buf, (const char*) a1)) {
 					long userID = i / 42;
 					Process::userPermissions = new Permission(userID);	 // set user permission
-					Debug::printf("~~~\n");
 					delete f;
 					return userID;
 				}

@@ -13,7 +13,7 @@ mkfs : mkfs.o
 .SECONDARY :
 
 
-FILES = ../user/shutdown ../user/shutdown.c ../user/shell.c ../user/shell ../user/ls.c ../user/ls ../user/echo ../user/echo.c ../user/cat.c ../user/cat f1.txt f2.txt panic ../user/TestProgram ../user/login ../user/passwords ../user/TestGame ../user/.grace ../user/longfilename ../user/ping ../kernel/permissions ../user/smile.pic
+FILES = ../user/shutdown ../user/shutdown.c ../user/shell.c ../user/shell ../user/ls.c ../user/ls ../user/echo ../user/echo.c ../user/cat.c ../user/cat f1.txt f2.txt panic ../user/TestProgram ../user/login ../kernel/passwords ../user/TestGame ../user/.grace ../user/longfilename ../user/ping ../kernel/permissions ../user/smile.pic
 
 ../user/% :
 	make -C ../user
