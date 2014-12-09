@@ -5,13 +5,16 @@
 Network* Network::KernelNetwork = nullptr;
 unsigned char Network::myMac[6] = {0x52,0x54,0x00,0x12,0x34,0x56};
 unsigned char Network::myIP[4] = {192,168,7,2};
+int Network::debugLevel = 1;
 
+bool hasBroke = false;
 void Network::HandleNetworkInterrupt() 
 {
     ++this->netCount;
 
 	unsigned short interruptType = inw(ioaddr + 0x3E);
-	//Debug::printf("Received interrupt of type: %x from the network card.\n", interruptType);
+	if(!hasBroke)
+	Debug::printf("Received interrupt of type: %x from the network card.\n", interruptType);
 
     
     if((interruptType & 1) > 0)
@@ -30,7 +33,16 @@ void Network::HandleNetworkInterrupt()
     if((interruptType & 16) > 0)
     {
     	//buffer full.
+    	if(!hasBroke)
     	Debug::printf("Our network buffer is full.\n");
+    	outw(ioaddr + 0x38, 8192);
+        this->endRxOKInterrupt();
+        hasBroke = true;
+    }
+    if((interruptType & 64) > 0)
+    {
+        Debug::printf("FIFO is full.\n");
+        this->endRxOKInterrupt();
     }
 }
 
@@ -42,7 +54,8 @@ bool Network::SendPacket(Packet* packet)
 		{
 			if(packet->isReply)
 			{
-                Debug::printf("SENDING ARP REPLY\n");
+				if(debugLevel > 0)
+					Debug::printf("SENDING ARP REPLY\n");
 				this->sendPacket(packet->data, 42);
 			}
 			else
@@ -140,7 +153,8 @@ void Network::ping(Packet *packet, const unsigned char destMac[6])
 
     this->calcChecksum((unsigned char *) packet->data + 34, 64, packet->data + 36 );
 
-    Debug::printf("PINGINGINGINGING");
+	if(debugLevel > 1)
+		Debug::printf("PINGINGINGINGING");
 
     this->sendPacket(packet->data, 98);
 }
@@ -188,22 +202,27 @@ void Network::handlePacketReceiveInterrupt()
     const PacketType etherType = getCurrentPacketType();
     if(this->isCurrentPacketForUs())    
     {
-        Debug::printf("current packet length is %d\n", packetLength);
         unsigned char sender[6];
         this->getCurrentPacketSender(sender);
-        Debug::printf("sender is ");
-        for (int i = 0; i < 5; ++i) {
-            Debug::printf("%x:", sender[i]);
-        }
-        Debug::printf("%x\n", sender[5]);
 
-        //Debug::printf("type is %x\n", etherType);
+		if(debugLevel > 1)
+		{
+			Debug::printf("current packet length is %d\n", packetLength);
+			Debug::printf("sender is ");
+			for (int i = 0; i < 5; ++i) {
+				Debug::printf("%x:", sender[i]);
+			}
+			Debug::printf("%x\n", sender[5]);
+			Debug::printf("type is %x\n", etherType);
+		}
 
         switch(etherType)
         {
             case PacketType::ARP:
             {
-                Debug::printf("ARP PACKET");
+
+        		if(debugLevel > 0)
+        			Debug::printf("ARP PACKET");
                 ARPPacket request;
                 memcpy(&request, &this->ReceiveBuffer[this->currentBufferPosition + 18], 28);
                 request.printPacket();
@@ -242,7 +261,8 @@ void Network::handlePacketReceiveInterrupt()
 
             case PacketType::IPv4:
             {
-                Debug::printf("IPV4 PACKET\n");
+        		if(debugLevel > 0)
+        			Debug::printf("IPV4 PACKET: ");
                 IPv4Header ipv4Header;
                 memcpy(&ipv4Header, rcvBuffer + 18, sizeof(IPv4Header));
                 /*for(int a = 0; a < packetLength; ++a)
@@ -256,7 +276,8 @@ void Network::handlePacketReceiveInterrupt()
                 {
 					case 1: //ICMP
 					{
-						Debug::printf("Received ICMP packet.\n");
+						if(debugLevel > 0)
+							Debug::printf(" type ICMP\n");
 						ICMPHeader icmpHeader;
 						memcpy(&icmpHeader, rcvBuffer + 18 + sizeof(IPv4Header), sizeof(ICMPHeader));
 						//icmpHeader.print();
@@ -264,13 +285,15 @@ void Network::handlePacketReceiveInterrupt()
 						{
 						case 0:
 						{
-							Debug::printf("Received ICMP echo reply.\n");
+							if(debugLevel > 0)
+								Debug::printf("Received ICMP echo reply.\n");
                             ipv4Header.print();
 							break;
 						}
 						case 8:
 						{
-							Debug::printf("Received ICMP echo request.\n");
+							if(debugLevel > 0)
+								Debug::printf("Received ICMP echo request.\n");
                             /*unsigned char destMac[6];
                             this->arpCache.GetEntry(ipv4Header.srcIPAddress, destMac);
                             for (int i = 0; i<6; ++i)
@@ -297,7 +320,7 @@ void Network::handlePacketReceiveInterrupt()
 						p->port = rcvBuffer[38];
 						p->protocol = PacketProtocol::P439;
 						p->type = PacketType::IPv4;
-                        //Debug::printf("Received a P439 Packet!!! %s\n\n", p->data);
+                        Debug::printf(" Type P439\n");
 
 						Process::networkProcess->QueueNetworkReceive(p);
 					}
@@ -321,18 +344,23 @@ void Network::handlePacketReceiveInterrupt()
     }
     else
     {
-        Debug::printf("Found somebody else's packet: %x %x %x %x %x %x\n",
-        		rcvBuffer[4],
-        		rcvBuffer[5],
-        		rcvBuffer[6],
-        		rcvBuffer[7],
-        		rcvBuffer[8],
-        		rcvBuffer[9]);
+
+		if(debugLevel > 1)
+			Debug::printf("Found somebody else's packet: %x %x %x %x %x %x\n",
+					rcvBuffer[4],
+					rcvBuffer[5],
+					rcvBuffer[6],
+					rcvBuffer[7],
+					rcvBuffer[8],
+					rcvBuffer[9]);
     }
 
     this->currentBufferPosition+= realPacketLength;
     this->currentBufferPosition = (this->currentBufferPosition + 3) & ~0x3;
-    Debug::printf("\nCurrent network receive buffer position: %d\n", this->currentBufferPosition);
+    this->currentBufferPosition %= 8192;
+	if(debugLevel > 0)
+		Debug::printf("\nCurrent network receive buffer position: %d\n", this->currentBufferPosition);
+	 outw(ioaddr + 0x38,  this->currentBufferPosition - 0x10);
     this->endRxOKInterrupt();
 }
 void Network::sendPacket(const unsigned char* data, int length)
@@ -383,6 +411,7 @@ void Network::resplondToEchoRequest()
 
 void Network::sendARPRequest(const unsigned char ip[4])
 {
+	if(debugLevel > 0)
     Debug::printf("SENDING ARP REQUEST");
     ARPPacket request;
     
@@ -541,7 +570,7 @@ void Network::Init()
     Debug::printf("Receive buffer: %x, then after setting: %x\n", receiveBufferAddress, receiveBufferAddress2);
 
     const long imrMask = inw(ioaddr + 0x3C);
-    outw(ioaddr + 0x3C, 0x0005);
+    outw(ioaddr + 0x3C, 0xFFFF);
     const long imrMask2 = inw(ioaddr + 0x3C);
     Debug::printf("IMR mask: %x, then after setting: %x\n", imrMask, imrMask2);
 

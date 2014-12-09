@@ -1,4 +1,4 @@
-PROGS = shell ls shutdown echo cat TestProgram login TestGame .grace ping
+PROGS = shell ls shutdown echo cat TestProgram login TestGame .grace ping np
 
 all : $(PROGS)
 
@@ -36,6 +36,9 @@ TestGame : CCFILES=TestGame.cc
 
 ping : CFILES=libc.c heap.c
 ping : CCFILES=Ping.cc
+
+np : CFILES=libc.c heap.c
+np : CCFILES=NetworkPixel.cc
 
 $(PROGS) : % : Makefile $(OFILES)
 	ld -N -m elf_i386 -e start -Ttext=0x80000000 -o $@ $(OFILES)

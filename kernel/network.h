@@ -164,6 +164,7 @@ public:
 	static constexpr unsigned int ioaddr = 0xc000;
 	static unsigned char myMac[6];
 	static unsigned char myIP[4];
+	static int debugLevel;
 	ARPCache arpCache;
 	long netCount;
 	long currentBufferPosition;

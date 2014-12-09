@@ -30,7 +30,7 @@ int main(int argc, char** args)
 	addr[3] = byte;
 
 
-	for(int a = 0; a < 15; ++a)
+	for(int a = 0; a < 60; ++a)
 	{
 		puts("Pinging: ");
 		putdec((unsigned int)addr[0]);
@@ -42,6 +42,6 @@ int main(int argc, char** args)
 		putdec((unsigned int)addr[3]);
 		puts("\n");
 		Ping(addr);
-		Sleep(1000);
+		Sleep(200);
 	}
 }

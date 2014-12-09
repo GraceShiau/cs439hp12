@@ -53,7 +53,6 @@ int main()
 
 	WriteSocket(socketDescriptor, destIP, (unsigned char*)data, strlen(data) + 1);
 
-	delete data;
 	while(1)
 	{
 
