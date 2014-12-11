@@ -6,9 +6,53 @@ extern "C" {
 #include "libcc.h"
 #include "smile.h"
 
-int main()
+static const int leftPaddleX = 23;
+static const int rightPaddleX = 127;
+
+static const int paddleWidth = 10;
+static const int paddleHeight = 45;
+
+int main(int argc, char** args)
 {
-	const long screenBufferId = GetScreenBuffer();
+	if(argc != 2)
+	{
+		puts("ERROR: Requires argument <game server ip>.\n");
+		return -1;
+	}
+	//get server ip address
+	const char* addrStr = args[1];
+
+	int i = 0;
+	unsigned char addr[4];
+	int j = 0;
+	unsigned char byte = 0;
+	int dotCount = 0;
+	while (addrStr[i] != 0)
+	{
+		if (addrStr[i] == '.')
+		{
+			addr[j] = byte;
+			j++;
+			byte = 0;
+			++dotCount;
+		}
+		else
+		{
+			byte = byte * 10 + ((unsigned char)addrStr[i]-48);
+		}
+
+		++i;
+	}
+	if(dotCount != 3)
+	{
+		puts("ERROR: Invalid ip address.\n");
+		return -1;
+	}
+	addr[3] = byte;
+
+	const int width = 160;
+	const int height = 120;
+	const long screenBufferId = GetScreenBuffer(width, height);
 
 	char smileBuffer[512];
 	const long smileId = open("smile.pic");
@@ -18,10 +62,10 @@ int main()
 		return -1;
 	}
 
-	unsigned char buf[80 * 60];
+	unsigned char buf[width * height];
 	int count = 0;
 	int color = 2;
-	for(int a = 0; a < 80 * 60; ++a)
+	for(int a = 0; a < width * height; ++a)
 	{
 		buf[a] = 2;
 	}
@@ -41,17 +85,15 @@ int main()
 	mySmile.x = 15;
 	mySmile.y = 18;
 
-	const int socketDescriptor = OpenSocket(1, 16);
+	int leftPaddleY = 50;
+	int rightPaddleY = 50;
+	const int socketDescriptor = OpenSocket(1, 3);
 	if(socketDescriptor < 0)
 	{
 		puts("Failed to open socket.\n");
 	}
 
 	puts("Successfully opened socket descriptor on port 16.\n");
-	unsigned char destIP[4] = {192, 168, 7, 4};
-	const char* data = "abcdefghijklmnopqrstuvwxyz";
-
-	WriteSocket(socketDescriptor, destIP, (unsigned char*)data, strlen(data) + 1);
 
 	while(1)
 	{
@@ -66,10 +108,24 @@ int main()
 			puts("\n");
 			puts((const char*)buffer);
 			puts("\n");
+
+			if(buffer[0] == 'b' && buffer[1] == ':')
+			{
+				puts("Received ball position update: ");
+				int ballX;
+				int ballY;
+				memcpy(&ballX, buffer + 2, 4);
+				memcpy(&ballY, buffer + 6, 4);
+				memcpy(&leftPaddleY, buffer + 10, 4);
+				memcpy(&rightPaddleY, buffer + 14, 4);
+				putdec(ballX); puts(", "); putdec(ballY); puts("\n");
+				mySmile.x = ballX;
+				mySmile.y = ballY;
+			}
 		}
 
 
-		for(int a = 0; a < 80 * 60; ++a)
+		for(int a = 0; a < width * height; ++a)
 		{
 			buf[a] = 2;
 		}
@@ -85,7 +141,7 @@ int main()
 			{
 				switch(keyBuffer[a])
 				{
-				case 'a':
+				/*case 'a':
 					mySmile.x-= 1;
 					break;
 				case 'd':
@@ -93,10 +149,25 @@ int main()
 					break;
 				case 'w':
 					mySmile.y-= 1;
-					break;
+					break;*/
 				case 's':
-					mySmile.y+= 1;
-					break;
+				{
+					const char* data = "s:";
+					WriteSocket(socketDescriptor, addr, (unsigned char*)data, strlen(data) + 1, 2);
+				}
+				break;
+				case 'w':
+				{
+					const char* data = "w:";
+					WriteSocket(socketDescriptor, addr, (unsigned char*)data, strlen(data) + 1, 2);
+				}
+				break;
+				case 't':
+				{
+					const char* data = "c:";
+					WriteSocket(socketDescriptor, addr, (unsigned char*)data, strlen(data) + 1, 2);
+				}
+				break;
 				}
 			}
 
@@ -107,10 +178,28 @@ int main()
 		{
 			for(int x = 0; x < 16; ++x)
 			{
-				buf[(x + mySmile.x) * 60 + y + mySmile.y] = smile[x*16 + y] != '0' ? 4 : 0;
+				buf[(x + mySmile.x) * height + y + mySmile.y] = smile[x*16 + y] != '0' ? 4 : 0;
 			}
 		}
 
+		for(int x = leftPaddleX; x < leftPaddleX + paddleWidth; ++x)
+		{
+			for(int y = leftPaddleY - paddleHeight / 2; y < leftPaddleY + paddleHeight / 2; ++y)
+			{
+				if(x < 0 || x >= width || y < 0 || y >= height)
+					continue;
+				buf[x * height + y] = 3;
+			}
+		}
+		for(int x = rightPaddleX; x < rightPaddleX + paddleWidth; ++x)
+		{
+			for(int y = rightPaddleY - paddleHeight / 2; y < rightPaddleY + paddleHeight / 2; ++y)
+			{
+				if(x < 0 || x >= width || y < 0 || y >= height)
+					continue;
+				buf[x * height + y] = 3;
+			}
+		}
 		LockScreenBuffer(screenBufferId);
 		if(WriteScreenBuffer(screenBufferId, buf) < 0)
 		{

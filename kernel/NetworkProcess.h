@@ -21,7 +21,7 @@ public:
 
     void QueueNetworkSend(Packet* packet);
     void QueueNetworkReceive(Packet* packet);
-    void WriteToSocket(Socket* s, const unsigned char destinationIP[4], const unsigned char* const buffer, int bufferLength);
+    void WriteToSocket(Socket* s, const unsigned char destinationIP[4], unsigned char port, const unsigned char* const buffer, int bufferLength);
 };
 
 

@@ -226,9 +226,11 @@ public:
 
 	ListNode* first;
 	ListNode* last;
+	int size;
 	List() :
 		first(nullptr),
-		last(nullptr)
+		last(nullptr),
+		size(0)
 	{
 
 	}
@@ -236,6 +238,7 @@ public:
 	inline void Push(const T& v)
 	{
 		ListNode* newNode = new ListNode(v);
+		++size;
 
 		if(this->first == nullptr)
 		{

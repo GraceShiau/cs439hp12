@@ -7,15 +7,18 @@ extern "C" {
 
 int main(int argc, char** args)
 {
-	if(argc != 2)
+	if(argc < 2)
+	{
+		puts("ERROR: Requires arguments <dest ip> optional:<dest port> optional:<listen port>.\n");
 		return -1;
-
+	}
 	const char* addrStr = args[1];
 
 	int i = 0;
 	unsigned char addr[4];
 	int j = 0;
 	unsigned char byte = 0;
+	int dotCount = 0;
 	while (addrStr[i] != 0)
 	{
 		if (addrStr[i] == '.')
@@ -23,6 +26,7 @@ int main(int argc, char** args)
 			addr[j] = byte;
 			j++;
 			byte = 0;
+			++dotCount;
 		}
 		else
 		{
@@ -30,6 +34,11 @@ int main(int argc, char** args)
 		}
 
 		++i;
+	}
+	if(dotCount != 3)
+	{
+		puts("ERROR: Invalid ip address.\n");
+		return -1;
 	}
 	addr[3] = byte;
 
@@ -41,8 +50,18 @@ int main(int argc, char** args)
 	puts(".");
 	putdec((unsigned int)addr[3]);
 	puts("\n");
-
-	const long screenBufferId = GetScreenBuffer();
+	int listenPort = 17;
+	int sendPort = 17;
+	if (argc >= 3)
+	{
+		sendPort = ((unsigned char)args[2][0]-48);
+	}
+	if (argc >= 4)
+	{
+		listenPort = ((unsigned char)args[3][0]-48);
+	}
+	puts("Listen port is: "); putdec(listenPort); puts(" send port is: "); putdec(sendPort); puts(".\n");
+	const long screenBufferId = GetScreenBuffer(80, 60);
 
 
 	unsigned char buf[80 * 60];
@@ -53,7 +72,7 @@ int main(int argc, char** args)
 		buf[a] = 2;
 	}
 
-	const int socketDescriptor = OpenSocket(1, 17);
+	const int socketDescriptor = OpenSocket(1, listenPort);
 	if(socketDescriptor < 0)
 	{
 		puts("Failed to open socket.\n");
@@ -106,7 +125,7 @@ int main(int argc, char** args)
 			{
 				const char data[2] = {keyBuffer[a], 0};
 
-				WriteSocket(socketDescriptor, addr, (unsigned char*)data, strlen(data) + 1);
+				WriteSocket(socketDescriptor, addr, (unsigned char*)data, strlen(data) + 1, sendPort);
 			}
 
 			delete[] keyBuffer;

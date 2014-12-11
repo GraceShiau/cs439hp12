@@ -161,8 +161,8 @@ testdraw:
 .global GetScreenBuffer
 GetScreenBuffer:
 	mov $16, %eax
-	mov $0, %ecx
-	mov $0, %edx
+	mov 4(%esp), %ecx
+	mov 8(%esp), %edx
 	int $100
 	ret
 

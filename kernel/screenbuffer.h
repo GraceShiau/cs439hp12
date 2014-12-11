@@ -44,7 +44,7 @@ public:
 	inline unsigned int GetOwnerProcessId() const {return this->ownerProcessId;}
 	ScreenBuffer* GetChildBuffer(int processId);
 	inline void CopyChildBuffer(int processId, unsigned char* buf) {const ScreenBuffer* const child = this->GetChildBuffer(processId); memcpy(buf, child->buffer, child->width * child->height);}
-	int GetNextChildBuffer();
+	void GetNextChildBuffer(int& processId, int& windowWidth, int& windowHeight);
 	inline int GetBufferRequestCount() {const int sz = this->bufferRequests.GetSize(); return sz;}
 	inline unsigned char* GetBuffer() const {return this->buffer;}
 	inline void Lock() {this->mutex.lock();}

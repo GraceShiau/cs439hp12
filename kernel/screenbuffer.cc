@@ -12,16 +12,20 @@ ScreenBuffer::ScreenBuffer(int width, int height, unsigned int ownerProcessId, u
 	Debug::printf("Creating new screen buffer for process: %d with width: %d and height: %d.\n", this->ownerProcessId, this->width, this->height);
 }
 
-int ScreenBuffer::GetNextChildBuffer()
+void ScreenBuffer::GetNextChildBuffer(int& processId, int& windowWidth, int& windowHeight)
 {
 	if(this->bufferRequests.isEmpty())
-		return -1;
+	{
+		processId = -1;
+		return;
+	}
 
 	ScreenBuffer*  nextBuffer = this->bufferRequests.removeHead();
 
-	const int newId = nextBuffer->ownerProcessId;
+	processId = nextBuffer->ownerProcessId;
+	windowWidth = nextBuffer->width;
+	windowHeight = nextBuffer->height;
 	this->childBuffers.Push(nextBuffer);
-	return newId;
 }
 
  ScreenBuffer* ScreenBuffer::GetChildBuffer(int processId)

@@ -320,6 +320,7 @@ void Network::handlePacketReceiveInterrupt()
 						p->port = rcvBuffer[38];
 						p->protocol = PacketProtocol::P439;
 						p->type = PacketType::IPv4;
+                        memcpy(p->IP, ipv4Header.srcIPAddress, 4);
                         Debug::printf(" Type P439\n");
 
 						Process::networkProcess->QueueNetworkReceive(p);

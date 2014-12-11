@@ -53,15 +53,24 @@ long NetworkProcess::run()
 	}
 }
 
-void NetworkProcess::WriteToSocket(Socket* s, const unsigned char destinationIP[4], const unsigned char* const buffer, int bufferLength)
+void NetworkProcess::WriteToSocket(Socket* s, const unsigned char destinationIP[4], unsigned char port, const unsigned char* const buffer, int bufferLength)
 {
 	Packet* p = new Packet(bufferLength);
-	p->port = s->GetPort();
+	p->port = port;
 	p->protocol = s->GetProtocol();
 	p->type = PacketType::IPv4;
 	memcpy(p->IP, destinationIP, 4);
 	memcpy(p->data, buffer, bufferLength);
-	this->QueueNetworkSend(p);
+
+	if ((destinationIP[0] == 127) && (destinationIP[1] == 0) && (destinationIP[2] == 0) && (destinationIP[3] == 1))
+	{
+		if(NetworkProcess::portTable[p->port] != nullptr)
+			this->QueueNetworkReceive(p);
+	}
+	else
+	{
+		this->QueueNetworkSend(p);
+	}
 }
 
 void NetworkProcess::QueueNetworkSend(Packet* packet)

@@ -32,7 +32,7 @@ DesktopWindowManager::DesktopWindowManager(int width, int height) :
 
 void DesktopWindowManager::Initialize()
 {
-	this->screenBufferId = GetScreenBuffer();
+	this->screenBufferId = GetScreenBuffer(320, 200);
 	if(this->screenBufferId < 0)
 	{
 		puts("Failed to acquire screen buffer.\n");
@@ -65,15 +65,18 @@ void DesktopWindowManager::acquireNewChildProcesses()
 
 	if(newProcessCount > 0)
 	{
-		int* newProcessIds = new int[newProcessCount];
+		int* newProcessIds = new int[newProcessCount * 3];
 		GetNewWindowRequests(newProcessIds);
-		for(int a = 0; a < newProcessCount; ++a)
+		for(int a = 0; a < newProcessCount * 3; a += 3)
 		{
 			puts("Initializing window for process: ");
-			const int newId = newProcessIds[a];
+			const int newId = newProcessIds[a * 3];
+			const int newWidth = newProcessIds[a * 3 + 1];
+			const int newHeight = newProcessIds[a * 3 + 2];
+			putdec(newWidth); puts(", "); putdec(newHeight); puts("\n");
 			putdec(newId);
 			puts("\n");
-			ChildWindow* newWindow = new ChildWindow(this->defaultChildX, this->defaultChildY, 80, 60, newId, this->defaultBorderWidth);
+			ChildWindow* newWindow = new ChildWindow(this->defaultChildX, this->defaultChildY, newWidth, newHeight, newId, this->defaultBorderWidth);
 			this->foregroundWindow = newWindow;
 			this->defaultChildX += 15;
 			this->defaultChildY += 15;
