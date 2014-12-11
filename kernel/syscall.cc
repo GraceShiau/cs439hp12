@@ -154,14 +154,12 @@ extern "C" long syscallHandler(uint32_t* context, long num, long a0, long a1) {
                  i++;
              }
              long rc = Process::current->execv(name,&args,i,true);
-             Debug::printf("came back from execv! Now in syscall.\n");
 
              /* execv failed, cleanup */
              while (!args.isEmpty()) {
                  const char* s = args.removeHead();
                  delete[] s;
              }
-             Debug::printf("before retunrning from syscall, rc: %d\n", rc);
              return rc;
         }
     case 14: /* getchar */
