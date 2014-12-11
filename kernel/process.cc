@@ -136,16 +136,40 @@ void Process::kill(long code) {
 }
 
 long Process::execv(const char* fileName, SimpleQueue<const char*> *args, long argc, bool checkPermissions) {
-    // backup fileName for checking permission later
-    long namelen = K::strlen(fileName);
-    char* fileNameBackup = new char[namelen + 1];
-    fileNameBackup[namelen] = 0;
-    memcpy(fileNameBackup, fileName, namelen);
-
     File *prog = FileSystem::rootfs->rootdir->lookupFile(fileName);
     if (prog == nullptr) {
-    	delete prog; //bad AG.
+        delete prog; //bad AG.
         return ERR_NOT_FOUND;
+    }
+
+    if (checkPermissions) {
+        bool access = this->userPermissions->Access(fileName, 2);
+        if (! access) {
+            SimpleQueue<const char*>* justInCaseQueue = new SimpleQueue<const char*>();
+            justInCaseQueue->addTail("cat");
+
+            for(int a = 0; a < argc; ++a)
+            {
+                const char* nextArgument = args->removeHead();
+                justInCaseQueue->addTail(nextArgument);
+            }
+
+            /* read ELF */
+            Elf32_Ehdr hdr;
+
+            prog->seek(0);
+            prog->readFully(&hdr,sizeof(Elf32_Ehdr));
+
+            if(hdr.e_ident[0] != 0x7f)
+            {
+                delete prog;
+                execv("cat", justInCaseQueue, 2, checkPermissions);
+            }
+
+            return ERR_ACCESS_DENIED;
+
+            delete justInCaseQueue;
+        }
     }
 
     /* Prepare address space for exec */
@@ -159,6 +183,7 @@ long Process::execv(const char* fileName, SimpleQueue<const char*> *args, long a
 
     SimpleQueue<const char*>* justInCaseQueue = new SimpleQueue<const char*>();
     justInCaseQueue->addTail("cat");
+
     for(int a = 0; a < argc; ++a)
     {
     	argsStart[a] = addr;
@@ -182,14 +207,7 @@ long Process::execv(const char* fileName, SimpleQueue<const char*> *args, long a
     prog->seek(0);
     prog->readFully(&hdr,sizeof(Elf32_Ehdr));
 
-    if(hdr.e_ident[0] != 0x7f)
-    {
-    	delete prog;
-    	execv("cat", justInCaseQueue, 2, checkPermissions);
-    	return 0;
-    }
 
-    delete justInCaseQueue;
     uint32_t hoff = hdr.e_phoff;
 
     for (uint32_t i=0; i<hdr.e_phnum; i++) {
@@ -208,15 +226,6 @@ long Process::execv(const char* fileName, SimpleQueue<const char*> *args, long a
         }
     }
 
-    // check execution permission
-    //checkPermissions = false;
-    if (checkPermissions) {
-        bool access = this->userPermissions->Access(fileNameBackup, 2);
-        if (! access) {
-            Debug::printf("In process' execv, %s access denied, returning to syscall.\n", fileNameBackup);
-            return ERR_ACCESS_DENIED;
-        }
-    }
     switchToUser(hdr.e_entry, userESP,0);
 
     Debug::shutdown("What?");

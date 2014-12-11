@@ -6,9 +6,14 @@ extern "C" {
 #include "libcc.h"
 #include "md5.h"
 
-/* Hashing of password happens here,
- * reading of the passwords file happens in the kernel.
+/* 
+ * Hashing of password happens here, reading of the passwords file happens in the kernel.
+ * MD5 source: http://www.zedwood.com/article/cpp-md5-function
+ * Modification of source: took out the overloading shortcut option (which takes std::string)
+ * exactly 10 characters for each username
+ * exactly 32 characters for hashed password
  */
+ 
 int main() {
 	while(1) {
 		puts("Username: ");
@@ -39,8 +44,3 @@ int main() {
 		} else puts("Authentication failed\n");
 	}
 }
-
-// MD5 source: http://www.zedwood.com/article/cpp-md5-function
-// took out overloading shortcut (which takes std::string) from the source implementation
-// exactly 10 characters for each username
-// exactly 32 characters for hashed password

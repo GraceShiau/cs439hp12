@@ -1,12 +1,25 @@
+Grace implemented the login and permission security features. They are both simplistic.
+Login is a user program that gets run before anything else by the init process. It takes user input's username and password, 
+hashes the password with MD5 with no salt, and does a syscall specifically for checking the user name against the hashed password.
+This syscall simply reads the hardcoded passwords file (a part of kernel) to see if a matching credential exists, and returns the finding.
+Based on this finding, the login program either notifies the user that he or she is logged in (as a certain user with a certain uid) 
+and attempts to run shell, or loops back to prompting for username and password if authentication failed.
+Then during run time, for every user program and user space file, the logged in user can attempt to read or execute it 
+based on the hardcoded permission file, which is parsed and loaded upon the user's successful login. 
+Whenever read or execution attempts are made, the kernel checks the loadedpermission data structure for the current user 
+and grants or denies access as the pre-determined permission approves.
+Modifications are made to some existing user programs to properly handle the additional ACCESS_DENIED error.
+Some features that would be implemented if given more time would be: (in order of priority) 
+-- write to actual disk: this would not only grant our system another necessary function, but also allow 
+extensions on login and permission functionalities.
+--the ability to add more accounts during run time: this is easy once write is implemented; 
+the added user would start with the minimal permissions.
+--add salt in hashing: currently it is not difficult to run dictionary attacks on our password system, 
+though the passwords file is currently in kernel space.
+--disable printing when entering password: needless to say, it'd be nice to have this feature for better security.
+--the notion of root and its ability to change other users' permissions dynamically
+--logout/switch user: a fairly easy but quite useful feature.
+--extension from the three RWX permission bits to the standard 9 bits: this will require adding the notions of 
+"owner", "group", and "others" in the permission system.
 
-- Explain how the arguments make it all the way from user program invoking
-  execv until they turn into main's argc, and argv for the target program
-
-- My implementation of execv in syscall.cc is not secure. Show a user
-  program that can read any memory address by exploiting my bad code
-
-- How would change the code to protect against this attack
-
-- What do we need to change in order to implement input and output
-  redirection and pipes in the shell?
-
+The MD5 implementation is from http://www.zedwood.com/article/cpp-md5-function; all proper documentations are included in the files.

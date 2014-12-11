@@ -12,7 +12,7 @@ mkfs : mkfs.o
 # keep all files
 .SECONDARY :
 
-FILES = ../user/shutdown ../user/shutdown.c ../user/shell.c ../user/shell ../user/ls.c ../user/ls ../user/echo ../user/echo.c ../user/cat.c ../user/cat f1.txt f2.txt panic ../user/TestProgram ../user/login ../user/passwords ../user/TestGame ../user/.grace ../user/longfilename ../user/ping ../user/smile.pic ../user/np ../user/TestServer ../kernel/permissions
+FILES = ../user/shutdown ../user/shutdown.c ../user/shell.c ../user/shell ../user/ls.c ../user/ls ../user/echo ../user/echo.c ../user/cat.c ../user/cat f1.txt f2.txt panic ../user/TestProgram ../user/login ../kernel/passwords ../user/TestGame ../user/.grace ../user/ping ../user/smile.pic ../user/np ../user/TestServer ../kernel/permissions
 
 ../user/% :
 	make -C ../user

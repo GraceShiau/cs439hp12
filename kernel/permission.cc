@@ -90,5 +90,3 @@
 			return node->value->executePermission;
 		}
 	}
-
-// Need to implement check for spaces in filename when implementing adding/writing to files
