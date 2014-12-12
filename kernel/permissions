@@ -1,9 +1,3 @@
 cat 001 shutdown 001 .grace 101 ls 001 shell 001 . 100 f1.txt 100 f2.txt 100 
 ls 001 . 100 echo 001 cat 001 shutdown 001 TestGame 101 smile.pic 101 TestProgram 101 panic 100 shell 001 ping 101 np 101 
 smile.pic 101 ls 001 . 100 shutdown 001 echo 001 np 101 TestGame 101 TestProgram 101 shell 001 panic 100 cat 001 ping 101 
-
-only Yuqian and Matt: TestProgram, TestGame, and ping
-only grace: f1, f2, and .grace
-Me: can't echo or panic
-
-make -s && qemu-system-x86_64 -nographic --serial mon:stdio -hdc kernel/kernel.img -hdd fat439/user.img

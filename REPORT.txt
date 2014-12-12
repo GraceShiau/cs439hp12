@@ -1,25 +1,33 @@
 Grace implemented the login and permission security features. They are both simplistic.
 Login is a user program that gets run before anything else by the init process. It takes user input's username and password, 
-hashes the password with MD5 with no salt, and does a syscall specifically for checking the user name against the hashed password.
-This syscall simply reads the hardcoded passwords file (a part of kernel) to see if a matching credential exists, and returns the finding.
+hashes the password with MD5 with no salt, and does a syscall specifically for checking the user name and hashed password against the existing pairs.
+This syscall simply reads the hardcoded passwords file (in kernel space) to see if a matching credential exists, and returns the finding.
 Based on this finding, the login program either notifies the user that he or she is logged in (as a certain user with a certain uid) 
 and attempts to run shell, or loops back to prompting for username and password if authentication failed.
 Then during run time, for every user program and user space file, the logged in user can attempt to read or execute it 
-based on the hardcoded permission file, which is parsed and loaded upon the user's successful login. 
-Whenever read or execution attempts are made, the kernel checks the loadedpermission data structure for the current user 
-and grants or denies access as the pre-determined permission approves.
+based on the hardcoded permission file (also in kernel space), which is parsed and loaded into the permission data structure 
+upon the user's successful login. Whenever read or execution attempts are made, 
+the kernel checks the loaded permission data structure for the current user and grants or denies access as the pre-determined permission approves.
 Modifications are made to some existing user programs to properly handle the additional ACCESS_DENIED error.
 Some features that would be implemented if given more time would be: (in order of priority) 
--- write to actual disk: this would not only grant our system another necessary function, but also allow 
+--write to actual disk: this would not only grant our system another necessary function, but also allow 
 extensions on login and permission functionalities.
 --the ability to add more accounts during run time: this is easy once write is implemented; 
 the added user would start with the minimal permissions.
 --add salt in hashing: currently it is not difficult to run dictionary attacks on our password system, 
-though the passwords file is currently in kernel space.
+though the passwords file is in kernel space, which complicates the attacker's task a little.
 --disable printing when entering password: needless to say, it'd be nice to have this feature for better security.
 --the notion of root and its ability to change other users' permissions dynamically
 --logout/switch user: a fairly easy but quite useful feature.
 --extension from the three RWX permission bits to the standard 9 bits: this will require adding the notions of 
 "owner", "group", and "others" in the permission system.
+--the list goes on and on...
+I've really enjoyed implementing these simple but useful security features! It was a lot of fun adding what I've learned 
+from the security class to the system we've been working on the whole semester. It was a super awesome experience.
+
+Notes: 
+only Yuqian and Matt: TestProgram, TestGame, and ping
+only Grace: f1, f2, and .grace
+Grace: also can't echo or panic
 
 The MD5 implementation is from http://www.zedwood.com/article/cpp-md5-function; all proper documentations are included in the files.

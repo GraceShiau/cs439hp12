@@ -138,7 +138,7 @@ void Process::kill(long code) {
 long Process::execv(const char* fileName, SimpleQueue<const char*> *args, long argc, bool checkPermissions) {
     File *prog = FileSystem::rootfs->rootdir->lookupFile(fileName);
     if (prog == nullptr) {
-        delete prog; //bad AG.
+        delete prog;
         return ERR_NOT_FOUND;
     }
 
@@ -156,7 +156,6 @@ long Process::execv(const char* fileName, SimpleQueue<const char*> *args, long a
 
             /* read ELF */
             Elf32_Ehdr hdr;
-
             prog->seek(0);
             prog->readFully(&hdr,sizeof(Elf32_Ehdr));
 
@@ -167,7 +166,6 @@ long Process::execv(const char* fileName, SimpleQueue<const char*> *args, long a
             }
 
             return ERR_ACCESS_DENIED;
-
             delete justInCaseQueue;
         }
     }
