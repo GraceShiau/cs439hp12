@@ -1,3 +1,20 @@
+To test the security features:
+Valid user credentials: 
+Username: graceshiau; Password: grape
+Username: yuqiangian; Password: packetsareawesome
+Username: ..........; Password: ..........
+
+To check against the permissions:
+look at the file permissions in kernel; note that if modifications are made to this for testing purposes, 
+at the end of each line there MUST BE A SPACE, otherwise the system will crash arbitrarily.
+
+As a starter (for testing permissions):
+only Yuqian and Matt: TestProgram, TestGame, and ping
+only Grace: f1, f2, and .grace
+Grace: also can't echo or panic
+
+Testing was not done on logging in and running TestProgram, TestGame, and ping because the whole project was not integrated in time.
+
 Grace implemented the login and permission security features. They are both simplistic.
 Login is a user program that gets run before anything else by the init process. It takes user input's username and password, 
 hashes the password with MD5 with no salt, and does a syscall specifically for checking the user name and hashed password against the existing pairs.
@@ -25,9 +42,5 @@ though the passwords file is in kernel space, which complicates the attacker's t
 I've really enjoyed implementing these simple but useful security features! It was a lot of fun adding what I've learned 
 from the security class to the system we've been working on the whole semester. It was a super awesome experience.
 
-Notes: 
-only Yuqian and Matt: TestProgram, TestGame, and ping
-only Grace: f1, f2, and .grace
-Grace: also can't echo or panic
-
+Disclaimer:
 The MD5 implementation is from http://www.zedwood.com/article/cpp-md5-function; all proper documentations are included in the files.

@@ -12,7 +12,8 @@ mkfs : mkfs.o
 # keep all files
 .SECONDARY :
 
-FILES = ../user/shutdown ../user/shutdown.c ../user/shell.c ../user/shell ../user/ls.c ../user/ls ../user/echo ../user/echo.c ../user/cat.c ../user/cat f1.txt f2.txt panic ../user/TestProgram ../user/login ../user/passwords ../user/TestGame ../user/.grace ../user/longfilename ../user/ping ../user/smile.pic ../user/np ../user/TestServer ../user/sad.pic ../user/happy.pic ../kernel/permissions
+# for merging to the rest of the project: keep this line and add ../user/sad.pic
+FILES = ../user/shutdown ../user/shutdown.c ../user/shell.c ../user/shell ../user/ls.c ../user/ls ../user/echo ../user/echo.c ../user/cat.c ../user/cat f1.txt f2.txt panic ../user/TestProgram ../user/login ../kernel/passwords ../user/TestGame ../user/.grace ../user/ping ../user/smile.pic ../user/np ../user/TestServer ../user/happy.pic ../kernel/permissions
 
 ../user/% :
 	make -C ../user
