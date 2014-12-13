@@ -253,6 +253,20 @@ public:
 		}
 	}
 
+	inline void Empty()
+	{
+		ListNode* node = this->first;
+		while (node != this->last)
+		{
+			node = node->next;
+			delete node->previous;
+		}
+		delete node;
+		this->first = nullptr;
+		this->last = nullptr;
+		this->size = 0;
+	}
+
 	inline ListNode* GetHead() {return this->first;}
 	inline ListNode* GetLast() {return this->last;}
 
